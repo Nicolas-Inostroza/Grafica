@@ -1,8 +1,11 @@
 import math
 import pyglet
 from pyglet import gl
+from .geometry import create_sphere, create_cylinder, create_cube
+from .trasformaciones import mat_identity, mat_translate, mat_rotate_y, mat_rotate_x, mat_mul
+from .nodo import Nodo
 
-window = pyglet.window.Window(800, 600, "Parent-Child Sphere-Cylinder", resizable=True)
+window = pyglet.window.Window(800, 600, "Personaje Articulado", resizable=True)
 
 # --- Shader ---
 vertex_source = """
@@ -32,97 +35,103 @@ shader = pyglet.graphics.shader.ShaderProgram(
     pyglet.graphics.shader.Shader(fragment_source, "fragment"),
 )
 
-# --- Geometry generators ---
-def create_sphere(radius=1.0, slices=32, stacks=16):
-    vertices = []
-    indices = []
-    for i in range(stacks + 1):
-        lat = math.pi * (-0.5 + float(i) / stacks)
-        z = radius * math.sin(lat)
-        r = radius * math.cos(lat)
-        for j in range(slices + 1):
-            lon = 2 * math.pi * float(j) / slices
-            x = r * math.cos(lon)
-            y = r * math.sin(lon)
-            vertices += [x, y, z]
-    for i in range(stacks):
-        for j in range(slices):
-            first = i * (slices + 1) + j
-            second = first + slices + 1
-            indices += [first, second, first + 1,
-                        second, second + 1, first + 1]
-    return vertices, indices
+# --- Crear geometrías ---
+verts_sphere, inds_sphere = create_sphere(radius=0.5)
+vlist_sphere = shader.vertex_list_indexed(len(verts_sphere)//3, gl.GL_TRIANGLES, inds_sphere,
+                                          position=(('f', 3), verts_sphere))
 
-def create_cylinder(radius=0.2, height=2.0, slices=32):
-    vertices = []
-    indices = []
-    half = height / 2.0
-    for i in range(slices + 1):
-        angle = 2 * math.pi * i / slices
-        x = radius * math.cos(angle)
-        y = radius * math.sin(angle)
-        vertices += [x, y, -half]
-        vertices += [x, y,  half]
-    for i in range(0, slices * 2, 2):
-        indices += [
-            i, i+1, (i+2) % (2*(slices+1)),
-            i+1, (i+3) % (2*(slices+1)), (i+2) % (2*(slices+1))
-        ]
-    return vertices, indices
+verts_cube, inds_cube = create_cube(size=1.5)
+vlist_cube = shader.vertex_list_indexed(len(verts_cube)//3, gl.GL_TRIANGLES, inds_cube,
+                                        position=(('f', 3), verts_cube))
 
-# Sphere and cylinder vlist
-vertices, indices = create_sphere()
-sphere_vlist = shader.vertex_list_indexed(len(vertices)//3, gl.GL_TRIANGLES, indices,
-                                          position=(('f', 3), vertices))
-cyl_vertices, cyl_indices = create_cylinder()
-cylinder_vlist = shader.vertex_list_indexed(len(cyl_vertices)//3, gl.GL_TRIANGLES, cyl_indices,
-                                            position=(('f', 3), cyl_vertices))
+# Brazos: cilindros VERTICALES (eje Y) que apuntan hacia abajo naturalmente
+verts_arm, inds_arm = create_cylinder(radius=0.15, height=1.2, axis='y')
+vlist_arm = shader.vertex_list_indexed(len(verts_arm)//3, gl.GL_TRIANGLES, inds_arm,
+                                       position=(('f', 3), verts_arm))
 
-# --- Matrix helpers ---
-def mat_identity():
-    return (
-        1,0,0,0,
-        0,1,0,0,
-        0,0,1,0,
-        0,0,0,1
-    )
+# Piernas: cilindros VERTICALES (eje Y)
+verts_leg, inds_leg = create_cylinder(radius=0.2, height=1.0, axis='y')
+vlist_leg = shader.vertex_list_indexed(len(verts_leg)//3, gl.GL_TRIANGLES, inds_leg,
+                                       position=(('f', 3), verts_leg))
 
-def mat_translate(x,y,z):
-    return (
-        1,0,0,0,
-        0,1,0,0,
-        0,0,1,0,
-        x,y,z,1
-    )
+verts_foot, inds_foot = create_cube(size=0.4)
+vlist_foot = shader.vertex_list_indexed(len(verts_foot)//3, gl.GL_TRIANGLES, inds_foot,
+                                        position=(('f', 3), verts_foot))
 
-def mat_rotate_y(angle):
-    c = math.cos(angle)
-    s = math.sin(angle)
-    return (
-        c,0,s,0,
-        0,1,0,0,
-        -s,0,c,0,
-        0,0,0,1
-    )
+# --- CONSTRUIR PERSONAJE ---
+# 1. Torso (raíz) - CUBO
+torso = Nodo("Torso")
+torso.model = vlist_cube
+torso.shader = shader
+torso.color = (0.3, 0.5, 0.8)
+torso.transformacion_local = mat_identity()  # Posición local fija
+torso.set_transformacion(mat_identity())
 
-def mat_rotate_x(angle):
-    c, s = math.cos(angle), math.sin(angle)
-    return (
-        1, 0, 0, 0,
-        0, c,-s, 0,
-        0, s, c, 0,
-        0, 0, 0, 1
-    )
+# 2. Cabeza (hija del torso)
+cabeza = Nodo("Cabeza")
+cabeza.model = vlist_sphere
+cabeza.shader = shader
+cabeza.color = (1.0, 0.8, 0.6)
+cabeza.transformacion_local = mat_translate(0, 1.3, 0)  # Posición fija arriba del torso
+cabeza.set_transformacion(cabeza.transformacion_local)
+torso.agregar_hijo(cabeza)
 
+# 3. Brazo Izquierdo
+brazo_izq = Nodo("Brazo_Izq")
+brazo_izq.model = vlist_arm
+brazo_izq.shader = shader
+brazo_izq.color = (0.9, 0.7, 0.5)
+# SOLO posición, la geometría ya está orientada correctamente
+brazo_izq.transformacion_local = mat_translate(-1.0, 0.5, 0)
+brazo_izq.set_transformacion(brazo_izq.transformacion_local)
+torso.agregar_hijo(brazo_izq)
 
-def mat_mul(a, b):
-    out = [0]*16
-    for i in range(4):
-        for j in range(4):
-            out[i*4+j] = sum(a[i*4+k]*b[k*4+j] for k in range(4))
-    return tuple(out)
+# 4. Brazo Derecho
+brazo_der = Nodo("Brazo_Der")
+brazo_der.model = vlist_arm
+brazo_der.shader = shader
+brazo_der.color = (0.9, 0.7, 0.5)
+brazo_der.transformacion_local = mat_translate(1.0, 0.5, 0)
+brazo_der.set_transformacion(brazo_der.transformacion_local)
+torso.agregar_hijo(brazo_der)
 
-# --- Camera setup ---
+# 5. Pierna Izquierda
+pierna_izq = Nodo("Pierna_Izq")
+pierna_izq.model = vlist_leg
+pierna_izq.shader = shader
+pierna_izq.color = (0.2, 0.3, 0.6)
+pierna_izq.transformacion_local = mat_translate(-0.4, -1.3, 0)
+pierna_izq.set_transformacion(pierna_izq.transformacion_local)
+torso.agregar_hijo(pierna_izq)
+
+# 6. Pie Izquierdo (hijo de pierna izquierda)
+pie_izq = Nodo("Pie_Izq")
+pie_izq.model = vlist_foot
+pie_izq.shader = shader
+pie_izq.color = (0.1, 0.1, 0.1)
+pie_izq.transformacion_local = mat_mul(mat_translate(0, -0.7, 0.2), mat_rotate_x(math.radians(0)))
+pie_izq.set_transformacion(pie_izq.transformacion_local)
+pierna_izq.agregar_hijo(pie_izq)
+
+# 7. Pierna Derecha
+pierna_der = Nodo("Pierna_Der")
+pierna_der.model = vlist_leg
+pierna_der.shader = shader
+pierna_der.color = (0.2, 0.3, 0.6)
+pierna_der.transformacion_local = mat_translate(0.4, -1.3, 0)
+pierna_der.set_transformacion(pierna_der.transformacion_local)
+torso.agregar_hijo(pierna_der)
+
+# 8. Pie Derecho (hijo de pierna derecha)
+pie_der = Nodo("Pie_Der")
+pie_der.model = vlist_foot
+pie_der.shader = shader
+pie_der.color = (0.1, 0.1, 0.1)
+pie_der.transformacion_local = mat_mul(mat_translate(0, -0.7, 0.2), mat_rotate_x(math.radians(0)))
+pie_der.set_transformacion(pie_der.transformacion_local)
+pierna_der.agregar_hijo(pie_der)
+
+# --- Cámara ---
 def perspective(fovy, aspect, near, far):
     f = 1.0 / math.tan(fovy / 2.0)
     return (
@@ -156,17 +165,19 @@ def look_at(eye, target, up):
 
 projection = perspective(math.radians(65), window.width / window.height, 0.1, 100.0)
 
-# --- Camera controls ---
+# --- Controles ---
 camera_pos = [0, 0, 6]
-yaw, pitch = 0, 0
+yaw, pitch = -90, 0
 speed = 0.1
 sensitivity = 2.0
 
-# --- Sphere rotation control ---
-sphere_rotation = 0.0
+# Ángulos de articulación
+angulo_torso_y = 0.0
+angulo_torso_x = 0.0
+pos_torso = [0.0, 0.0, 0.0]  # Posición del torso
 
 def tarea():
-    global sphere_rotation
+    global angulo_torso_y, angulo_torso_x, pos_torso
 
     keys = pyglet.window.key.KeyStateHandler()
     window.push_handlers(keys)
@@ -188,28 +199,43 @@ def tarea():
         shader["projection"] = projection
         shader["view"] = get_view()
 
-        # esfera (padre, con rotación)
-        model_sphere = mat_rotate_y(sphere_rotation)
-        shader["model"] = model_sphere
-        shader["color"] = (0.2, 0.6, 1.0)
-        sphere_vlist.draw(gl.GL_TRIANGLES)
+        # Aplicar transformaciones al torso (combina traslación y rotación)
+        # IMPORTANTE: Primero rota, luego traslada
+        torso.set_transformacion(
+            mat_mul(
+                mat_translate(pos_torso[0], pos_torso[1], pos_torso[2]),
+                mat_mul(mat_rotate_y(angulo_torso_y), mat_rotate_x(angulo_torso_x))
+            )
+        )
+        
+        # Los hijos mantienen SOLO su transformación local fija
+        # Las geometrías ya están orientadas correctamente
+        cabeza.set_transformacion(cabeza.transformacion_local)
+        brazo_izq.set_transformacion(brazo_izq.transformacion_local)
+        brazo_der.set_transformacion(brazo_der.transformacion_local)
+        pierna_izq.set_transformacion(pierna_izq.transformacion_local)
+        pierna_der.set_transformacion(pierna_der.transformacion_local)
 
-        # cilindro (hijo → se transforma con la esfera)
-        initial_rot = mat_rotate_y(math.radians(90))  # 45° inicial
-        model_cyl = mat_mul(initial_rot,mat_translate(2, 0, 0))
-        model_cyl = mat_mul(model_cyl,model_sphere)
+        # Dibujar todo el árbol
+        draw_node(torso, mat_identity())
 
-        shader["model"] = model_cyl
-        shader["color"] = (1.0, 0.5, 0.2)
-        cylinder_vlist.draw(gl.GL_TRIANGLES)
+    def draw_node(nodo, parent_matrix):
+        model_matrix = mat_mul(parent_matrix, nodo.transformacion)
+        shader["model"] = model_matrix
+        shader["color"] = nodo.color
+        if nodo.model:
+            nodo.model.draw(gl.GL_TRIANGLES)
+        for hijo in nodo.hijos:
+            draw_node(hijo, model_matrix)
 
     def update(dt):
-        global camera_pos, yaw, pitch, sphere_rotation
-        forward = [
-            math.cos(math.radians(yaw)), 0, math.sin(math.radians(yaw))
-        ]
+        global camera_pos, yaw, pitch
+        global angulo_torso_y, angulo_torso_x, pos_torso
+        
+        forward = [math.cos(math.radians(yaw)), 0, math.sin(math.radians(yaw))]
         right = [-forward[2], 0, forward[0]]
 
+        # Movimiento de cámara
         if keys[pyglet.window.key.W]:
             camera_pos = [camera_pos[i] + forward[i]*speed for i in range(3)]
         if keys[pyglet.window.key.S]:
@@ -222,7 +248,6 @@ def tarea():
             camera_pos[1] -= speed
         if keys[pyglet.window.key.E]:
             camera_pos[1] += speed
-
         if keys[pyglet.window.key.LEFT]:
             yaw -= sensitivity
         if keys[pyglet.window.key.RIGHT]:
@@ -233,9 +258,37 @@ def tarea():
             pitch -= sensitivity
             pitch = max(-89, min(89, pitch))
 
-        # ROTACIÓN con la barra espaciadora
+        # ===== CONTROLES DEL TORSO (TODO SE MUEVE JUNTO) =====
+        
+        # Rotar torso en Y (izquierda/derecha) con ESPACIO / B
         if keys[pyglet.window.key.SPACE]:
-            sphere_rotation += 0.05
+            angulo_torso_y += 0.05
+        if keys[pyglet.window.key.B]:
+            angulo_torso_y -= 0.05
+        
+        # Mover torso adelante/atrás con I/K
+        if keys[pyglet.window.key.I]:
+            pos_torso[2] -= 0.05  # Adelante
+        if keys[pyglet.window.key.K]:
+            pos_torso[2] += 0.05  # Atrás
+            
+        # Mover torso arriba/abajo con U/J
+        if keys[pyglet.window.key.U]:
+            pos_torso[1] += 0.05  # Arriba
+        if keys[pyglet.window.key.J]:
+            pos_torso[1] -= 0.05  # Abajo
+            
+        # Mover torso izquierda/derecha con H/L
+        if keys[pyglet.window.key.H]:
+            pos_torso[0] -= 0.05  # Izquierda
+        if keys[pyglet.window.key.L]:
+            pos_torso[0] += 0.05  # Derecha
+            
+        # Inclinar torso en X con O/P
+        if keys[pyglet.window.key.O]:
+            angulo_torso_x += 0.03
+        if keys[pyglet.window.key.P]:
+            angulo_torso_x -= 0.03
 
     pyglet.clock.schedule_interval(update, 1/60.0)
     pyglet.app.run()
