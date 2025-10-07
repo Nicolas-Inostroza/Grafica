@@ -19,8 +19,6 @@ class Nodo:
     def set_transformacion(self, transformacion):
         """Establece la transformación actual del nodo"""
         self.transformacion = transformacion
-        for hijo in self.hijos:
-            hijo.set_transformacion(hijo.transformacion_local)
             
 
     def draw(self, parent_matrix=None):
@@ -28,7 +26,7 @@ class Nodo:
         if parent_matrix is None:
             model_matrix = self.transformacion
         else:
-            model_matrix = mat_mul(parent_matrix, self.transformacion)
+            model_matrix = mat_mul(self.transformacion, parent_matrix)
 
         if self.model and self.shader:
             self.shader["model"] = model_matrix

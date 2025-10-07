@@ -1,6 +1,4 @@
-"""
-geometry.py - Definiciones de geometrías básicas (cubos, cilindros, esferas)
-"""
+
 import numpy as np
 import math
 
@@ -25,10 +23,6 @@ def create_sphere(radius=1.0, slices=32, stacks=16):
     return vertices, indices
 
 def create_cylinder(radius=0.2, height=2.0, slices=32, axis='z', rotation=None):
-    """
-    Creates a cylinder aligned with the specified axis and optionally rotated.
-    rotation: (angle_in_degrees, 'x'|'y'|'z') or None
-    """
     vertices = []
     indices = []
     half = height / 2.0
@@ -100,8 +94,10 @@ def create_cylinder(radius=0.2, height=2.0, slices=32, axis='z', rotation=None):
 
     return vertices, indices
 
+
+
+
 def create_cube(size=1.0):
-    """Crea un cubo centrado en el origen"""
     s = size / 2.0
     vertices = [
         # Front face

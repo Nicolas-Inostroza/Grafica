@@ -34,6 +34,14 @@ def mat_rotate_x(angle):
         0, s, c, 0,
         0, 0, 0, 1
     )
+def mat_rotate_z(angle):
+    c, s = math.cos(angle), math.sin(angle)
+    return (
+        c,-s, 0, 0,
+        s, c, 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1
+    )
 
 
 def mat_mul(a, b):
