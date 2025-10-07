@@ -19,6 +19,9 @@ class Nodo:
     def set_transformacion(self, transformacion):
         """Establece la transformación actual del nodo"""
         self.transformacion = transformacion
+        for hijo in self.hijos:
+            hijo.set_transformacion(hijo.transformacion_local)
+            
 
     def draw(self, parent_matrix=None):
         """Dibuja el nodo y sus hijos aplicando transformaciones jerárquicas."""

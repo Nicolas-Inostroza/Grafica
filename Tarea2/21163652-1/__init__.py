@@ -40,14 +40,18 @@ verts_sphere, inds_sphere = create_sphere(radius=0.5)
 vlist_sphere = shader.vertex_list_indexed(len(verts_sphere)//3, gl.GL_TRIANGLES, inds_sphere,
                                           position=(('f', 3), verts_sphere))
 
-verts_cube, inds_cube = create_cube(size=1.5)
+verts_cube, inds_cube = create_cube(size=1.3)
 vlist_cube = shader.vertex_list_indexed(len(verts_cube)//3, gl.GL_TRIANGLES, inds_cube,
                                         position=(('f', 3), verts_cube))
 
 # Brazos: cilindros VERTICALES (eje Y) que apuntan hacia abajo naturalmente
-verts_arm, inds_arm = create_cylinder(radius=0.15, height=1.2, axis='y')
+verts_arm, inds_arm = create_cylinder(radius=0.15, height=0.6, axis='y')
 vlist_arm = shader.vertex_list_indexed(len(verts_arm)//3, gl.GL_TRIANGLES, inds_arm,
                                        position=(('f', 3), verts_arm))
+
+verts_antebrazo, inds_antebrazo = create_cylinder(radius=0.15, height=0.6, axis='y',rotation=( -25, 'x'))
+vlist_antebrazo = shader.vertex_list_indexed(len(verts_antebrazo)//3, gl.GL_TRIANGLES, inds_antebrazo,
+                                       position=(('f', 3), verts_antebrazo))
 
 # Piernas: cilindros VERTICALES (eje Y)
 verts_leg, inds_leg = create_cylinder(radius=0.2, height=1.0, axis='y')
@@ -73,7 +77,6 @@ cabeza.model = vlist_sphere
 cabeza.shader = shader
 cabeza.color = (1.0, 0.8, 0.6)
 cabeza.transformacion_local = mat_translate(0, 1.3, 0)  # Posición fija arriba del torso
-cabeza.set_transformacion(cabeza.transformacion_local)
 torso.agregar_hijo(cabeza)
 
 # 3. Brazo Izquierdo
@@ -83,8 +86,17 @@ brazo_izq.shader = shader
 brazo_izq.color = (0.9, 0.7, 0.5)
 # SOLO posición, la geometría ya está orientada correctamente
 brazo_izq.transformacion_local = mat_translate(-1.0, 0.5, 0)
-brazo_izq.set_transformacion(brazo_izq.transformacion_local)
 torso.agregar_hijo(brazo_izq)
+
+# 3. Antebrazo Izquierdo
+antebrazo_izq = Nodo("antebrazo_izq")
+antebrazo_izq.model = vlist_antebrazo
+antebrazo_izq.shader = shader
+antebrazo_izq.color = (0.9, 0.7, 0.5)
+# SOLO posición, la geometría ya está orientada correctamente
+antebrazo_izq.transformacion_local = mat_translate(0, -0.6, 0.2)
+brazo_izq.agregar_hijo(antebrazo_izq)
+
 
 # 4. Brazo Derecho
 brazo_der = Nodo("Brazo_Der")
@@ -92,8 +104,16 @@ brazo_der.model = vlist_arm
 brazo_der.shader = shader
 brazo_der.color = (0.9, 0.7, 0.5)
 brazo_der.transformacion_local = mat_translate(1.0, 0.5, 0)
-brazo_der.set_transformacion(brazo_der.transformacion_local)
 torso.agregar_hijo(brazo_der)
+
+# 3. Antebrazo Izquierdo
+antebrazo_der = Nodo("antebrazo_der")
+antebrazo_der.model = vlist_antebrazo
+antebrazo_der.shader = shader
+antebrazo_der.color = (0.9, 0.7, 0.5)
+# SOLO posición, la geometría ya está orientada correctamente
+antebrazo_der.transformacion_local = mat_translate(0, -0.6, 0.2)
+brazo_der.agregar_hijo(antebrazo_der)
 
 # 5. Pierna Izquierda
 pierna_izq = Nodo("Pierna_Izq")
@@ -101,7 +121,6 @@ pierna_izq.model = vlist_leg
 pierna_izq.shader = shader
 pierna_izq.color = (0.2, 0.3, 0.6)
 pierna_izq.transformacion_local = mat_translate(-0.4, -1.3, 0)
-pierna_izq.set_transformacion(pierna_izq.transformacion_local)
 torso.agregar_hijo(pierna_izq)
 
 # 6. Pie Izquierdo (hijo de pierna izquierda)
@@ -110,7 +129,6 @@ pie_izq.model = vlist_foot
 pie_izq.shader = shader
 pie_izq.color = (0.1, 0.1, 0.1)
 pie_izq.transformacion_local = mat_mul(mat_translate(0, -0.7, 0.2), mat_rotate_x(math.radians(0)))
-pie_izq.set_transformacion(pie_izq.transformacion_local)
 pierna_izq.agregar_hijo(pie_izq)
 
 # 7. Pierna Derecha
@@ -119,7 +137,6 @@ pierna_der.model = vlist_leg
 pierna_der.shader = shader
 pierna_der.color = (0.2, 0.3, 0.6)
 pierna_der.transformacion_local = mat_translate(0.4, -1.3, 0)
-pierna_der.set_transformacion(pierna_der.transformacion_local)
 torso.agregar_hijo(pierna_der)
 
 # 8. Pie Derecho (hijo de pierna derecha)
@@ -128,7 +145,6 @@ pie_der.model = vlist_foot
 pie_der.shader = shader
 pie_der.color = (0.1, 0.1, 0.1)
 pie_der.transformacion_local = mat_mul(mat_translate(0, -0.7, 0.2), mat_rotate_x(math.radians(0)))
-pie_der.set_transformacion(pie_der.transformacion_local)
 pierna_der.agregar_hijo(pie_der)
 
 # --- Cámara ---
@@ -171,9 +187,6 @@ yaw, pitch = -90, 0
 speed = 0.1
 sensitivity = 2.0
 
-# Ángulos de articulación
-angulo_torso_y = 0.0
-angulo_torso_x = 0.0
 pos_torso = [0.0, 0.0, 0.0]  # Posición del torso
 
 def tarea():
@@ -202,19 +215,8 @@ def tarea():
         # Aplicar transformaciones al torso (combina traslación y rotación)
         # IMPORTANTE: Primero rota, luego traslada
         torso.set_transformacion(
-            mat_mul(
-                mat_translate(pos_torso[0], pos_torso[1], pos_torso[2]),
-                mat_mul(mat_rotate_y(angulo_torso_y), mat_rotate_x(angulo_torso_x))
-            )
+                mat_translate(pos_torso[0], pos_torso[1], pos_torso[2])
         )
-        
-        # Los hijos mantienen SOLO su transformación local fija
-        # Las geometrías ya están orientadas correctamente
-        cabeza.set_transformacion(cabeza.transformacion_local)
-        brazo_izq.set_transformacion(brazo_izq.transformacion_local)
-        brazo_der.set_transformacion(brazo_der.transformacion_local)
-        pierna_izq.set_transformacion(pierna_izq.transformacion_local)
-        pierna_der.set_transformacion(pierna_der.transformacion_local)
 
         # Dibujar todo el árbol
         draw_node(torso, mat_identity())
@@ -259,13 +261,6 @@ def tarea():
             pitch = max(-89, min(89, pitch))
 
         # ===== CONTROLES DEL TORSO (TODO SE MUEVE JUNTO) =====
-        
-        # Rotar torso en Y (izquierda/derecha) con ESPACIO / B
-        if keys[pyglet.window.key.SPACE]:
-            angulo_torso_y += 0.05
-        if keys[pyglet.window.key.B]:
-            angulo_torso_y -= 0.05
-        
         # Mover torso adelante/atrás con I/K
         if keys[pyglet.window.key.I]:
             pos_torso[2] -= 0.05  # Adelante
@@ -283,12 +278,6 @@ def tarea():
             pos_torso[0] -= 0.05  # Izquierda
         if keys[pyglet.window.key.L]:
             pos_torso[0] += 0.05  # Derecha
-            
-        # Inclinar torso en X con O/P
-        if keys[pyglet.window.key.O]:
-            angulo_torso_x += 0.03
-        if keys[pyglet.window.key.P]:
-            angulo_torso_x -= 0.03
 
     pyglet.clock.schedule_interval(update, 1/60.0)
     pyglet.app.run()

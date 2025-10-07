@@ -24,35 +24,80 @@ def create_sphere(radius=1.0, slices=32, stacks=16):
                         second, second + 1, first + 1]
     return vertices, indices
 
-def create_cylinder(radius=0.2, height=2.0, slices=32, axis='z'):
+def create_cylinder(radius=0.2, height=2.0, slices=32, axis='z', rotation=None):
     """
-    Crea un cilindro alineado con el eje especificado.
-    axis: 'x', 'y', o 'z' (por defecto 'z' que es vertical)
+    Creates a cylinder aligned with the specified axis and optionally rotated.
+    rotation: (angle_in_degrees, 'x'|'y'|'z') or None
     """
     vertices = []
     indices = []
     half = height / 2.0
     
+    # --- Base cylinder vertices ---
     for i in range(slices + 1):
         angle = 2 * math.pi * i / slices
         c = radius * math.cos(angle)
         s = radius * math.sin(angle)
         
-        if axis == 'y':  # Cilindro vertical (para brazos/piernas)
-            vertices += [c, -half, s]
-            vertices += [c,  half, s]
-        elif axis == 'x':  # Cilindro horizontal en X
-            vertices += [-half, c, s]
-            vertices += [ half, c, s]
-        else:  # axis == 'z' (default)
-            vertices += [c, s, -half]
-            vertices += [c, s,  half]
+        if axis == 'y':
+            v1 = [c, -half, s]
+            v2 = [c,  half, s]
+        elif axis == 'x':
+            v1 = [-half, c, s]
+            v2 = [ half, c, s]
+        else:  # 'z'
+            v1 = [c, s, -half]
+            v2 = [c, s,  half]
+        
+        vertices += v1 + v2
     
+    # --- Apply rotation if needed ---
+    if rotation is not None:
+        angle_deg, rot_axis = rotation
+        angle_rad = math.radians(angle_deg)
+        
+        cos_a = math.cos(angle_rad)
+        sin_a = math.sin(angle_rad)
+        
+        # rotation matrices
+        if rot_axis == 'x':
+            R = [
+                [1, 0, 0],
+                [0, cos_a, -sin_a],
+                [0, sin_a, cos_a]
+            ]
+        elif rot_axis == 'y':
+            R = [
+                [cos_a, 0, sin_a],
+                [0, 1, 0],
+                [-sin_a, 0, cos_a]
+            ]
+        elif rot_axis == 'z':
+            R = [
+                [cos_a, -sin_a, 0],
+                [sin_a, cos_a, 0],
+                [0, 0, 1]
+            ]
+        else:
+            raise ValueError("rotation axis must be 'x', 'y', or 'z'")
+        
+        # Apply rotation to all vertices
+        rotated_vertices = []
+        for i in range(0, len(vertices), 3):
+            x, y, z = vertices[i:i+3]
+            rx = R[0][0]*x + R[0][1]*y + R[0][2]*z
+            ry = R[1][0]*x + R[1][1]*y + R[1][2]*z
+            rz = R[2][0]*x + R[2][1]*y + R[2][2]*z
+            rotated_vertices += [rx, ry, rz]
+        vertices = rotated_vertices
+
+    # --- Build indices ---
     for i in range(0, slices * 2, 2):
         indices += [
             i, i+1, (i+2) % (2*(slices+1)),
             i+1, (i+3) % (2*(slices+1)), (i+2) % (2*(slices+1))
         ]
+
     return vertices, indices
 
 def create_cube(size=1.0):
