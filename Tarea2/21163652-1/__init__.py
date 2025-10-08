@@ -7,9 +7,10 @@ from .trasformaciones import mat_identity, mat_translate, mat_rotate_y, mat_rota
 from .nodo import Nodo
 from .camara import perspective, look_at
 from .personaje import crear_personaje
-from .poses import apply_pose
+from .poses import apply_pose, Poses
 
 window = pyglet.window.Window(800, 600, "Personaje Articulado", resizable=True)
+gl.glClearColor(0.5, 0.2, 0.5, 1)
 
 # --- Shader ---
 vertex_source = """
@@ -49,12 +50,19 @@ sensitivity = 2.0
 
 pos_torso = [0.0, 0.0, 0.0]  # Posición del torso
 personaje_dict, cuerpo, torso = crear_personaje(shader)
-current_pose = "neutral"
+
+# Lista de todas las poses disponibles
+pose_list = list(Poses.keys())
+current_pose_index = 0
+current_pose = pose_list[current_pose_index]
 apply_pose(personaje_dict, current_pose)  # Aplicar pose inicial
+
+# Variable para evitar múltiples cambios con una sola pulsación
+space_pressed = False
 
 
 def tarea():
-    global current_pose  # Agregar current_pose aquí
+    global current_pose, current_pose_index, space_pressed  # Agregar variables globales
 
     keys = pyglet.window.key.KeyStateHandler()
     window.push_handlers(keys)
@@ -77,13 +85,13 @@ def tarea():
         shader["projection"] = projection
         shader["view"] = get_view()
 
-        # Dibujar todo el árbol - CAMBIO IMPORTANTE: pasar None para que sea la raíz
+        # Dibujar todo el árbol
         torso.draw(None)
 
 
     def update(dt):
         global camera_pos, yaw, pitch
-        global current_pose  # Ya no necesitas angulo_torso_y, angulo_torso_x, pos_torso
+        global current_pose, current_pose_index, space_pressed
         
         forward = [math.cos(math.radians(yaw)), 0, math.sin(math.radians(yaw))]
         right = [-forward[2], 0, forward[0]]
@@ -111,30 +119,59 @@ def tarea():
             pitch -= sensitivity
             pitch = max(-89, min(89, pitch))
         
-        # Cambio de poses
+        # Cambiar entre poses con ESPACIO
+        if keys[pyglet.window.key.SPACE]:
+            if not space_pressed:  # Solo cambiar si no estaba presionado antes
+                space_pressed = True
+                # Avanzar al siguiente índice
+                current_pose_index = (current_pose_index + 1) % len(pose_list)
+                current_pose = pose_list[current_pose_index]
+                apply_pose(personaje_dict, current_pose)
+                print(f"Applied pose [{current_pose_index + 1}/{len(pose_list)}]: {current_pose}")
+        else:
+            space_pressed = False  # Resetear cuando se suelta la tecla
+        
+        # Cambio de poses individuales con números (opcional)
         if keys[pyglet.window.key._1]:
             if current_pose != "neutral":
                 current_pose = "neutral"
+                current_pose_index = pose_list.index(current_pose)
                 apply_pose(personaje_dict, current_pose)
                 print(f"Applied pose: {current_pose}")
         if keys[pyglet.window.key._2]:
-            if current_pose != "t_pose":
-                current_pose = "t_pose"
+            if current_pose != "johnny_joestar":
+                current_pose = "johnny_joestar"
+                current_pose_index = pose_list.index(current_pose)
                 apply_pose(personaje_dict, current_pose)
                 print(f"Applied pose: {current_pose}")
         if keys[pyglet.window.key._3]:
-            if current_pose != "walking":
-                current_pose = "walking"
+            if current_pose != "jotaro_pose":
+                current_pose = "jotaro_pose"
+                current_pose_index = pose_list.index(current_pose)
                 apply_pose(personaje_dict, current_pose)
                 print(f"Applied pose: {current_pose}")
         if keys[pyglet.window.key._4]:
-            if current_pose != "sitting":
-                current_pose = "sitting"
+            if current_pose != "joseph_pose":
+                current_pose = "joseph_pose"
+                current_pose_index = pose_list.index(current_pose)
                 apply_pose(personaje_dict, current_pose)
                 print(f"Applied pose: {current_pose}")
         if keys[pyglet.window.key._5]:
-            if current_pose != "waving":
-                current_pose = "waving"
+            if current_pose != "dio_pose":
+                current_pose = "dio_pose"
+                current_pose_index = pose_list.index(current_pose)
+                apply_pose(personaje_dict, current_pose)
+                print(f"Applied pose: {current_pose}")
+        if keys[pyglet.window.key._6]:
+            if current_pose != "giorno_pose":
+                current_pose = "giorno_pose"
+                current_pose_index = pose_list.index(current_pose)
+                apply_pose(personaje_dict, current_pose)
+                print(f"Applied pose: {current_pose}")
+        if keys[pyglet.window.key._7]:
+            if current_pose != "t_pose":
+                current_pose = "t_pose"
+                current_pose_index = pose_list.index(current_pose)
                 apply_pose(personaje_dict, current_pose)
                 print(f"Applied pose: {current_pose}")
 

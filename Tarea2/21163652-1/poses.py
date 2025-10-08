@@ -4,44 +4,137 @@ import math
 # Define poses with rotations (in radians) for each body part
 Poses = {
     "neutral": {
-        "Torso": {"translate": (0, 0, 0), "rotate_x": 0, "rotate_y": 0},
+        "torso_sup": {"translate": (0, 0, 0), "rotate_x": 0, "rotate_y": 0},
+        "Torso_Central": {"rotate_x": 0, "rotate_y": 0},
+        "Cadera": {"rotate_x": 0, "rotate_y": 0},
         "Cabeza": {"rotate_x": 0, "rotate_y": 0},
-        "Brazo_Izq": {"rotate_x": 0, "rotate_y": 0},
-        "Brazo_Der": {"rotate_x": 0, "rotate_y": 0},
-        "Pierna_Izq": {"rotate_x": 0, "rotate_y": 0},
-        "Pierna_Der": {"rotate_x": 0, "rotate_y": 0},
-
+        "Brazo_Izq": {"rotate_x": 0, "rotate_y": 0, "rotate_z": 0},
+        "Brazo_Der": {"rotate_x": 0, "rotate_y": 0, "rotate_z": 0},
+        "Antebrazo_Izq": {"rotate_x": 0, "rotate_y": 0, "rotate_z": 0},
+        "Antebrazo_Der": {"rotate_x": 0, "rotate_y": 0, "rotate_z": 0},
+        "Pierna_Izq": {"rotate_x": 0, "rotate_y": 0, "rotate_z": 0},
+        "Pierna_Der": {"rotate_x": 0, "rotate_y": 0, "rotate_z": 0},
+        "Pantorrilla_Izq": {"rotate_x": 0, "rotate_y": 0},
+        "Pantorrilla_Der": {"rotate_x": 0, "rotate_y": 0},
     },
     
+    # Pose icónica de Johnny Joestar - pose de tiro con Tusk
+    "johnny_joestar": {
+        "torso_sup": {"translate": (0, 0, 0), "rotate_x": math.radians(10), "rotate_y": math.radians(-10)},
+        "Torso_Central": {"rotate_x": math.radians(10), "rotate_y": math.radians(-30)},
+        "Cadera": {"rotate_x": math.radians(20), "rotate_y": math.radians(10)},
+        "Cabeza": {"rotate_x": math.radians(-5), "rotate_y": math.radians(-20)},
+        
+        # Brazo derecho apuntando hacia adelante (pose de disparo)
+        "Brazo_Der": {"rotate_x": math.radians(40), "rotate_y": 0, "rotate_z": 0},
+        "Antebrazo_Der": {"rotate_x": 0, "rotate_y": 0, "rotate_z": math.radians(30)},
+        
+        # Brazo izquierdo hacia atrás en ángulo dramático
+        "Brazo_Izq": {"rotate_x": math.radians(30), "rotate_y": math.radians(-20), "rotate_z": 0},
+        "Antebrazo_Izq": {"rotate_x": math.radians(0), "rotate_y": 0, "rotate_z": 0},
+        
+        # Piernas en posición estable
+        "Pierna_Der": {"rotate_x": math.radians(30), "rotate_y": math.radians(-40), "rotate_z": math.radians(-40)},
+        "Pierna_Izq": {"rotate_x": math.radians(30), "rotate_y": math.radians(40), "rotate_z":  math.radians(40)},
+        "Pantorrilla_Der": {"rotate_x": math.radians(-80), "rotate_y": math.radians(60)},
+        "Pantorrilla_Izq": {"rotate_x": math.radians(-120), "rotate_y": math.radians(-60)},
+    },
+    
+    # Pose de Jotaro - "Yare Yare Daze"
+    "jotaro_pose": {
+        "torso_sup": {"translate": (0, 0, 0), "rotate_x": math.radians(-10), "rotate_y": 0},
+        "Torso_Central": {"rotate_x": math.radians(10), "rotate_y": math.radians(-80)},
+        "Cadera": {"rotate_x": 0, "rotate_y": math.radians(10)},
+        "Cabeza": {"rotate_x": math.radians(-20), "rotate_y": 0},
+        
+        # Brazo derecho señalando
+        "Brazo_Der": {"rotate_x": math.radians(0), "rotate_y": math.radians(0), "rotate_z": math.radians(0)},
+        "Antebrazo_Der": {"rotate_x": math.radians(0), "rotate_y": 0, "rotate_z": 0},
+        
+        # Brazo izquierdo en la cadera/cinturón
+        "Brazo_Izq": {"rotate_x": math.radians(0), "rotate_y": 0, "rotate_z": math.radians(0)},
+        "Antebrazo_Izq": {"rotate_x": math.radians(0), "rotate_y": 0, "rotate_z": 0},
+        
+        # Piernas en postura confiada
+        "Pierna_Der": {"rotate_x": math.radians(10), "rotate_y": math.radians(-20), "rotate_z": 0},
+        "Pierna_Izq": {"rotate_x": math.radians(-5), "rotate_y": math.radians(10), "rotate_z": 0},
+        "Pantorrilla_Der": {"rotate_x": math.radians(-5), "rotate_y": 0},
+        "Pantorrilla_Izq": {"rotate_x": math.radians(5), "rotate_y": 0},
+    },
+    
+    # Pose de Joseph Joestar - "Your next line is..."
+    "joseph_pose": {
+        "torso_sup": {"translate": (0, 0, 0), "rotate_x": math.radians(0), "rotate_y": math.radians(-5),"rotate_z": math.radians(10)},
+        "Torso_Central": {"rotate_x": math.radians(0), "rotate_y": math.radians(0)},
+        "Cadera": {"rotate_x": 0, "rotate_y": math.radians(20)},
+        "Cabeza": {"rotate_x": math.radians(-10), "rotate_y": math.radians(-30)},
+        
+        # Brazo derecho apuntando dramáticamente
+        "Brazo_Der": {"rotate_x": math.radians(40), "rotate_y": math.radians(30), "rotate_z": math.radians(0)},
+        "Antebrazo_Der": {"rotate_x": math.radians(0), "rotate_y": math.radians(0), "rotate_z":math.radians(40)},
+        
+        # Brazo izquierdo en ángulo hacia abajo
+        "Brazo_Izq": {"rotate_x": math.radians(0), "rotate_y": math.radians(0), "rotate_z": math.radians(0)},
+        "Antebrazo_Izq": {"rotate_x": math.radians(0), "rotate_y": 0, "rotate_z": 0},
+        
+        # Piernas dinámicas
+        "Pierna_Der": {"rotate_x": math.radians(-10), "rotate_y": math.radians(-15), "rotate_z": 0},
+        "Pierna_Izq": {"rotate_x": math.radians(25), "rotate_y": math.radians(20), "rotate_z": 0},
+        "Pantorrilla_Der": {"rotate_x": math.radians(15), "rotate_y": 0},
+        "Pantorrilla_Izq": {"rotate_x": math.radians(-15), "rotate_y": 0},
+    },
+    
+    # Pose de Dio - "WRYYYY!"
+    "dio_pose": {
+        "torso_sup": {"translate": (0, 0.2, 0), "rotate_x": math.radians(-15), "rotate_y": 0},
+        "Torso_Central": {"rotate_x": math.radians(-10), "rotate_y": 0},
+        "Cadera": {"rotate_x": math.radians(5), "rotate_y": 0},
+        "Cabeza": {"rotate_x": math.radians(-20), "rotate_y": 0},
+        
+        # Ambos brazos hacia arriba dramáticamente
+        "Brazo_Der": {"rotate_x": math.radians(-140), "rotate_y": math.radians(-20), "rotate_z": math.radians(-40)},
+        "Antebrazo_Der": {"rotate_x": math.radians(-30), "rotate_y": 0, "rotate_z": 0},
+        
+        "Brazo_Izq": {"rotate_x": math.radians(-140), "rotate_y": math.radians(20), "rotate_z": math.radians(40)},
+        "Antebrazo_Izq": {"rotate_x": math.radians(-30), "rotate_y": 0, "rotate_z": 0},
+        
+        # Piernas en posición de poder
+        "Pierna_Der": {"rotate_x": math.radians(-20), "rotate_y": math.radians(-15), "rotate_z": 0},
+        "Pierna_Izq": {"rotate_x": math.radians(-20), "rotate_y": math.radians(15), "rotate_z": 0},
+        "Pantorrilla_Der": {"rotate_x": math.radians(25), "rotate_y": 0},
+        "Pantorrilla_Izq": {"rotate_x": math.radians(25), "rotate_y": 0},
+    },
+    
+    # Pose de Giorno - "I, Giorno Giovanna, have a dream"
+    "giorno_pose": {
+        "torso_sup": {"translate": (0, 0, 0), "rotate_x": math.radians(5), "rotate_y": math.radians(-15)},
+        "Torso_Central": {"rotate_x": math.radians(5), "rotate_y": math.radians(-10)},
+        "Cadera": {"rotate_x": 0, "rotate_y": math.radians(-5)},
+        "Cabeza": {"rotate_x": math.radians(-15), "rotate_y": math.radians(20)},
+        
+        # Mano derecha cerca del pecho (pose elegante)
+        "Brazo_Der": {"rotate_x": math.radians(-50), "rotate_y": math.radians(-30), "rotate_z": math.radians(-70)},
+        "Antebrazo_Der": {"rotate_x": math.radians(-60), "rotate_y": 0, "rotate_z": 0},
+        
+        # Brazo izquierdo extendido ligeramente
+        "Brazo_Izq": {"rotate_x": math.radians(-30), "rotate_y": math.radians(20), "rotate_z": math.radians(50)},
+        "Antebrazo_Izq": {"rotate_x": math.radians(-20), "rotate_y": 0, "rotate_z": 0},
+        
+        # Pose de piernas estilizada
+        "Pierna_Der": {"rotate_x": math.radians(5), "rotate_y": math.radians(-10), "rotate_z": 0},
+        "Pierna_Izq": {"rotate_x": math.radians(-5), "rotate_y": math.radians(15), "rotate_z": 0},
+        "Pantorrilla_Der": {"rotate_x": math.radians(0), "rotate_y": 0},
+        "Pantorrilla_Izq": {"rotate_x": math.radians(5), "rotate_y": 0},
+    },
+    
+    # T-Pose básica
     "t_pose": {
-        "Torso": {"translate": (0, 0, 0), "rotate_x": 0, "rotate_y": 0},
-        "Brazo_Izq": { "rotate_x": 0, "rotate_y": 0, "rotate_z": 0},
-        "Brazo_Der": {"rotate_x": 0, "rotate_y": 0, "rotate_z": math.radians(-20)},
-        "Antebrazo_Der": {"rotate_x": math.radians(10), "rotate_y": 0, "rotate_z": math.radians(70)},  # Compensar la rotación del cilindro
+        "torso_sup": {"translate": (0, 0, 0), "rotate_x": 0, "rotate_y": 0},
+        "Brazo_Izq": {"rotate_x": 0, "rotate_y": 0, "rotate_z": math.radians(90)},
+        "Brazo_Der": {"rotate_x": 0, "rotate_y": 0, "rotate_z": math.radians(-90)},
+        "Antebrazo_Izq": {"rotate_x": 0, "rotate_y": 0, "rotate_z": 0},
+        "Antebrazo_Der": {"rotate_x": 0, "rotate_y": 0, "rotate_z": 0},
     },
-    
-    "walking": {
-        "Torso": {"translate": (0, 0, 0), "rotate_x": 0, "rotate_y": 0},
-        "Brazo_Izq": {"rotate_x": 0, "rotate_y": 0, "rotate_z": math.radians(160)},
-        "Brazo_Der": {"rotate_x": 0, "rotate_y": 0, "rotate_z": math.radians(-50)},
-        "Antebrazo_Der": {"rotate_x": 0, "rotate_y": math.radians(90), "rotate_z": 0},  # Compensar la rotación del cilindro
-        "Antebrazo_Izq": {"rotate_x": math.radians(25), "rotate_y": 0},  # Compensar la rotación del cilindro
-        "Antebrazo_Der": {"rotate_x": math.radians(25), "rotate_y": 0},  # Compensar la rotación del cilindro
-    },
-    
-    "sitting": {
-        "Torso": {"translate": (0, -0.5, 0), "rotate_x": math.radians(10), "rotate_y": 0},
-        "Pierna_Izq": {"rotate_x": math.radians(90), "rotate_y": 0},
-        "Pierna_Der": {"rotate_x": math.radians(90), "rotate_y": 0},
-        "Pantorrilla_Izq": {"rotate_x": math.radians(-90), "rotate_y": 0},
-        "Pantorrilla_Der": {"rotate_x": math.radians(-90), "rotate_y": 0},
-    },
-    
-    "waving": {
-        "Torso": {"translate": (0, 0, 0), "rotate_x": 0, "rotate_y": 0},
-        "Brazo_Der": {"rotate_x": 0, "rotate_y": 0, "rotate_z": math.radians(-120)},
-        "Antebrazo_Der": {"rotate_x": math.radians(-45), "rotate_y": 0},
-    }
 }
 
 
@@ -68,21 +161,25 @@ def apply_pose(personaje_dict, pose_name):
         if nodo_name in personaje_dict:
             nodo = personaje_dict[nodo_name]
             
-            # Start with the local transformation (position relative to parent)
-            transform = nodo.transformacion_local
-            
-            # Apply rotations in order: X, Y, Z
-            if "rotate_x" in transforms and transforms["rotate_x"] != 0:
-                transform = mat_mul(mat_rotate_x(transforms["rotate_x"]), transform)
-            if "rotate_y" in transforms and transforms["rotate_y"] != 0:
-                transform = mat_mul(mat_rotate_y(transforms["rotate_y"]), transform)
-            if "rotate_z" in transforms and transforms["rotate_z"] != 0:
-                transform = mat_mul(mat_rotate_z(transforms["rotate_z"]),transform)
-
-            # Apply translation if it's the torso (root node)
-            if "translate" in transforms:
+            # For root nodes: can modify translation (to move whole character)
+            if nodo_name in ["torso_sup", "Torso_Central", "Cadera"] and "translate" in transforms:
                 tx, ty, tz = transforms["translate"]
                 if tx != 0 or ty != 0 or tz != 0:
-                    transform = mat_mul(mat_translate(tx, ty, tz), transform)
+                    # Replace the local transformation with new translation
+                    transform = mat_translate(tx, ty, tz)
+                else:
+                    transform = nodo.transformacion_local
+            else:
+                # For ALL OTHER NODES: start with their fixed local transformation
+                transform = nodo.transformacion_local
+            
+            # Apply rotations in order: X, Y, Z
+            # Rotations are ALWAYS relative to the local position
+            if "rotate_x" in transforms and transforms["rotate_x"] != 0:
+                transform = mat_mul(transform, mat_rotate_x(transforms["rotate_x"]))
+            if "rotate_y" in transforms and transforms["rotate_y"] != 0:
+                transform = mat_mul(transform, mat_rotate_y(transforms["rotate_y"]))
+            if "rotate_z" in transforms and transforms["rotate_z"] != 0:
+                transform = mat_mul(transform, mat_rotate_z(transforms["rotate_z"]))
             
             nodo.set_transformacion(transform)
