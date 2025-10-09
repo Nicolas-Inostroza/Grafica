@@ -1,6 +1,7 @@
 from pyglet.gl import *
 from ctypes import c_char_p, c_int, create_string_buffer
 
+
 def compile_shader(source, shader_type):
     shader = glCreateShader(shader_type)
 
@@ -33,7 +34,6 @@ def create_program(vertex_src, fragment_src):
     glAttachShader(program, fs)
     glLinkProgram(program)
 
-    # revisar si linkeó
     status = c_int()
     glGetProgramiv(program, GL_LINK_STATUS, status)
     if not status.value:

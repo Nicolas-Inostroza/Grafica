@@ -3,7 +3,10 @@ import math
 
 
 
-# --- Cámara ---
+"""
+perspective :: float,float,float,float -> list
+Resive una serie de valores a los cuales se les aplica un cambio para generar una perspectiva para la camara.
+"""
 def perspective(fovy, aspect, near, far):
     f = 1.0 / math.tan(fovy / 2.0)
     return (
@@ -13,6 +16,11 @@ def perspective(fovy, aspect, near, far):
         0, 0, (2 * far * near) / (near - far), 0
     )
 
+
+"""
+look_at :: list,list,list -> list
+Toma tres listas, la primera es la posicion actual de la camara, la posicion objetivo y una lista que aumenta en 1 la altura de la camara
+"""
 def look_at(eye, target, up):
     f = [(t - e) for t, e in zip(target, eye)]
     flen = math.sqrt(sum(x*x for x in f))

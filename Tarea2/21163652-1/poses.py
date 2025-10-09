@@ -1,8 +1,10 @@
 from .trasformaciones import mat_translate, mat_rotate_x, mat_rotate_y, mat_rotate_z, mat_mul, mat_identity
 import math
 
-# Define poses with rotations (in radians) for each body part
 Poses = {
+
+
+    #Pose baspersonaje recto
     "neutral": {
         "torso_sup": {"translate": (0, 0, 0), "rotate_x": 0, "rotate_y": 0},
         "Torso_Central": {"rotate_x": 0, "rotate_y": 0},
@@ -18,7 +20,7 @@ Poses = {
         "Pantorrilla_Der": {"rotate_x": 0, "rotate_y": 0},
     },
     
-    # Pose icónica de Johnny Joestar - pose de tiro con Tusk
+    # Pose de Johnny Joestar
     "johnny_joestar": {
         "torso_sup": {"translate": (0, 0, 0), "rotate_x": math.radians(10), "rotate_y": math.radians(-10)},
         "Torso_Central": {"rotate_x": math.radians(10), "rotate_y": math.radians(-35)},
@@ -42,7 +44,7 @@ Poses = {
         "Pie_Izq": {"rotate_x": math.radians(-70), "rotate_y": math.radians(-60), "rotate_z": math.radians(-30)},
     },
     
-    # Pose de Jotaro - "Yare Yare Daze"
+    # Pose imposible de Polnareff
     "polnareff_pose": {
         "torso_sup": {"rotate_x": math.radians(50), "rotate_y": math.radians(10),"rotate_z": math.radians(-20)},
         "Torso_Central": {"rotate_x": math.radians(20), "rotate_y": math.radians(-30),"rotate_z": math.radians(100)},
@@ -66,8 +68,8 @@ Poses = {
         "Pie_Izq": {"rotate_x": math.radians(-40), "rotate_y": math.radians(10), "rotate_z": 0},
     },
     
-    # Pose de Joseph Joestar - "Your next line is..."
-    "joseph_pose": {
+    # Pose de Jonathan Joestar 
+    "jonathan_pose": {
         "torso_sup": {"rotate_x": math.radians(0), "rotate_y": math.radians(-5),"rotate_z": math.radians(5)},
         "Torso_Central": {"rotate_x": math.radians(0), "rotate_y": math.radians(0),"rotate_z": math.radians(10)},
         "Cadera": {"rotate_x": 0, "rotate_y": math.radians(0),"rotate_z":math.radians(-10)},
@@ -92,43 +94,39 @@ Poses = {
 }
 
 
-def apply_pose(personaje_dict, pose_name):
-    """
-    Apply a pose to the character.
+"""
+aplicar_pose :: dict, string -> void
+Aplica una pose especifica al personaje.
+Busca una llave dentro del diccionario esto devuelve una lista de diccionarios cda uno contiene el nombre de un nodo del personaje
+y las trasformaciones a aplicar para cada nodo.
+
+"""
+def aplicar_pose(personaje_dict, pose_nombre):
     
-    Args:
-        personaje_dict: Dictionary mapping node names to Nodo objects
-        pose_name: Name of the pose from Poses dictionary
-    """
-    if pose_name not in Poses:
-        print(f"Pose '{pose_name}' not found!")
-        return
+    pose = Poses[pose_nombre]
     
-    pose = Poses[pose_name]
-    
-    # First, reset all nodes to their base local transformations
-    for nodo_name, nodo in personaje_dict.items():
+    # Devolvemos a todos los nodos a su posicion base
+    for nodo_nombre, nodo in personaje_dict.items():
         nodo.set_transformacion(nodo.transformacion_local)
     
-    # Then apply pose-specific transformations
-    for nodo_name, transforms in pose.items():
-        if nodo_name in personaje_dict:
-            nodo = personaje_dict[nodo_name]
+    # Para cada cosa del diccionario se obtiene el nombre del nodo y las transformadas a aplicar a este.
+    for nodo_nombre, transforms in pose.items():
+
+        # Nos aseguramos que el nodo al cual se le va a aplicar al transformacion existe en el personaje.
+        if nodo_nombre in personaje_dict:
+            nodo = personaje_dict[nodo_nombre]
             
-            # For root nodes: can modify translation (to move whole character)
-            if nodo_name in ["torso_sup", "Torso_Central", "Cadera"] and "translate" in transforms:
+            # La translación solo se aplica al nodo raíz es decir solo al Torso central cualquier otro intento de translación sera ignorado
+
+            if nodo_nombre == "Torso_Central" and "translate" in transforms:
                 tx, ty, tz = transforms["translate"]
                 if tx != 0 or ty != 0 or tz != 0:
                     # Replace the local transformation with new translation
                     transform = mat_translate(tx, ty, tz)
-                else:
-                    transform = nodo.transformacion_local
             else:
-                # For ALL OTHER NODES: start with their fixed local transformation
                 transform = nodo.transformacion_local
             
-            # Apply rotations in order: X, Y, Z
-            # Rotations are ALWAYS relative to the local position
+            # Se aplican las rotaciones en cada eje, al aplicarse una despues de otra cada rotacion es relativa a la anterior.
             if "rotate_x" in transforms and transforms["rotate_x"] != 0:
                 transform = mat_mul(transform, mat_rotate_x(transforms["rotate_x"]))
             if "rotate_y" in transforms and transforms["rotate_y"] != 0:
@@ -136,4 +134,5 @@ def apply_pose(personaje_dict, pose_name):
             if "rotate_z" in transforms and transforms["rotate_z"] != 0:
                 transform = mat_mul(transform, mat_rotate_z(transforms["rotate_z"]))
             
+            # Aplicamos la transformación resultante al nodo.
             nodo.set_transformacion(transform)

@@ -8,17 +8,14 @@ from pyglet import gl
 
 
 '''
-crear_personaje(shader) -> (list, Nodo)
+crear_personaje :: shader -> Dict,list, Nodo
 Crea un grafo de escena que contiene los nodos de las articulaciones del personaje.
 Utiliza diferentes formas geometricas para las distintas partes del cuerpo.
 '''
 def crear_personaje(shader):
     # --- Crear geometrías para cada parte del personaje ---
 
-    # Cabeza: esfera
-    verts_sphere, inds_sphere = create_sphere(radius=0.5)
-    vlist_sphere = shader.vertex_list_indexed(len(verts_sphere)//3, gl.GL_TRIANGLES, inds_sphere,
-                                            position=(('f', 3), verts_sphere))
+
     #torso_superior: cubo
     verts_cube_superior, inds_cube_superior = create_cube(size=0.8, scale_x=1.8, scale_y=1, scale_z=0.8)
     vlist_cube_superior = shader.vertex_list_indexed(len(verts_cube_superior)//3, gl.GL_TRIANGLES, inds_cube_superior,
@@ -33,6 +30,21 @@ def crear_personaje(shader):
                                             position=(('f', 3), verts_cube_inferior))
 
 
+
+
+    # Cabeza: esfera
+    verts_sphere, inds_sphere = create_sphere(radius=0.5)
+    vlist_sphere = shader.vertex_list_indexed(len(verts_sphere)//3, gl.GL_TRIANGLES, inds_sphere,
+                                            position=(('f', 3), verts_sphere))
+
+    # Pelo: cilindro para que se a el pelo de Polnareff
+    verts_pelo, inds_pelo = create_cylinder(radius=0.45,height=0.8, slices=16, axis='y')
+    vlist_pelo = shader.vertex_list_indexed(len(verts_pelo)//3, gl.GL_TRIANGLES, inds_pelo,
+                                            position=(('f', 3), verts_pelo))
+
+
+
+
     # Brazos: cilindros creados en el eje Y
     verts_arm, inds_arm = create_cylinder(radius=0.15, height=1, axis='y')
     vlist_arm = shader.vertex_list_indexed(len(verts_arm)//3, gl.GL_TRIANGLES, inds_arm,
@@ -43,13 +55,11 @@ def crear_personaje(shader):
     vlist_antebrazo = shader.vertex_list_indexed(len(verts_antebrazo)//3, gl.GL_TRIANGLES, inds_antebrazo,
                                         position=(('f', 3), verts_antebrazo))
 
+    # Mano: esfera pequeña tambien usada para codos,hombro, rodillas y coxis
     verts_mano, inds_mano = create_sphere(radius=0.16, slices=20, stacks=10)
     vlist_mano = shader.vertex_list_indexed(len(verts_mano)//3, gl.GL_TRIANGLES, inds_mano,
                                             position=(('f', 3), verts_mano))
 
-    verts_pelo, inds_pelo = create_cylinder(radius=0.45,height=0.8, slices=16, axis='y')
-    vlist_pelo = shader.vertex_list_indexed(len(verts_pelo)//3, gl.GL_TRIANGLES, inds_pelo,
-                                            position=(('f', 3), verts_pelo))
 
 
 
@@ -58,25 +68,26 @@ def crear_personaje(shader):
     vlist_leg = shader.vertex_list_indexed(len(verts_leg)//3, gl.GL_TRIANGLES, inds_leg,
                                         position=(('f', 3), verts_leg))
 
-    # Pies: cubos pequeños
-    verts_foot, inds_foot = create_cube(size=0.5, scale_x=0.5, scale_y=0.4, scale_z=1.5)
-    vlist_foot = shader.vertex_list_indexed(len(verts_foot)//3, gl.GL_TRIANGLES, inds_foot,
-                                            position=(('f', 3), verts_foot))
-
     # Pantorrilla: cilindros creados en el eje Y y rotados en el eje x
     verts_pantorrilla, inds_pantorrilla = create_cylinder(radius=0.2, height=0.8, axis='y')
     vlist_pantorrilla = shader.vertex_list_indexed(len(verts_pantorrilla)//3, gl.GL_TRIANGLES, inds_pantorrilla,
                                         position=(('f', 3), verts_pantorrilla))
 
+    # Pies: cubos pequeños
+    verts_foot, inds_foot = create_cube(size=0.5, scale_x=0.5, scale_y=0.4, scale_z=1.5)
+    vlist_foot = shader.vertex_list_indexed(len(verts_foot)//3, gl.GL_TRIANGLES, inds_foot,
+                                            position=(('f', 3), verts_foot))
+
+    
     # --- NODOS PERSONAJE ---
-    # 0. Crear nodos del personaje
+    # Torso central raíz
     torso_central = Nodo("torso_central")  # Nodo central para mover todo el personaje
     torso_central.model = vlist_cube_central
     torso_central.shader = shader
     torso_central.color = (1.0, 1.0, 1.0)  # Color blanco por defecto
     torso_central.transformacion_local = mat_identity()  # Posición inicial en el origen
 
-    # 1. torso_sup (raíz) 
+    # Torso_superior pecho
     torso_sup = Nodo("torso_sup")
     torso_sup.model = vlist_cube_superior
     torso_sup.shader = shader
@@ -84,6 +95,7 @@ def crear_personaje(shader):
     torso_sup.transformacion_local = mat_translate(0,0.8,0)  # Posición local fija
     torso_central.agregar_hijo(torso_sup)
 
+    # Cadera
     cadera = Nodo("Cadera")
     cadera.model = vlist_cube_inferior
     cadera.shader = shader
@@ -91,7 +103,7 @@ def crear_personaje(shader):
     cadera.transformacion_local = mat_translate(0, -0.65, 0)  # Posición local fija
     torso_central.agregar_hijo(cadera)
 
-    # 2. Cabeza 
+    # Cabeza 
     cabeza = Nodo("Cabeza")
     cabeza.model = vlist_sphere
     cabeza.shader = shader
@@ -115,42 +127,40 @@ def crear_personaje(shader):
 
     # Hombro Izquierdo
     hombro_izq = Nodo("Hombro_Izq")
-    hombro_izq.model = vlist_mano  # No tiene geometría propia
+    hombro_izq.model = vlist_mano 
     hombro_izq.shader = shader
-    hombro_izq.color = (1.0, 0.0, 0.0)  # Color rojo para identificar
+    hombro_izq.color = (1.0, 0.0, 0.0) 
     hombro_izq.transformacion_local = mat_translate(-0.9, 0.3, 0)
     torso_sup.agregar_hijo(hombro_izq)
 
-    # 3. Brazo Izquierdo
+    # Brazo Izquierdo
     brazo_izq = Nodo("Brazo_Izq")
     brazo_izq.model = vlist_arm
     brazo_izq.shader = shader
     brazo_izq.color = (0.9, 0.7, 0.5)
-    # SOLO posición, la geometría ya está orientada correctamente
     brazo_izq.transformacion_local = mat_translate(-0.05, -0.5, 0)
     hombro_izq.agregar_hijo(brazo_izq)
 
 
-    # 4. Codo Izquierdo
+    # Codo Izquierdo
     codo_izq = Nodo("Codo_Izq")
-    codo_izq.model = vlist_mano  # No tiene geometría propia
+    codo_izq.model = vlist_mano 
     codo_izq.shader = shader
-    codo_izq.color = (1.0, 0.0, 0.0)  # Color rojo para identificar
+    codo_izq.color = (1.0, 0.0, 0.0) 
     codo_izq.transformacion_local = mat_translate(0, -0.6, 0)
     brazo_izq.agregar_hijo(codo_izq)
 
-    # 3. Antebrazo Izquierdo
+    # Antebrazo Izquierdo
     antebrazo_izq = Nodo("Antebrazo_Izq")
     antebrazo_izq.model = vlist_antebrazo
     antebrazo_izq.shader = shader
     antebrazo_izq.color = (0.9, 0.7, 0.5)
-    # SOLO posición, la geometría ya está orientada correctamente
     antebrazo_izq.transformacion_local = mat_translate(0, -0.5, 0)
     codo_izq.agregar_hijo(antebrazo_izq)
 
-    #Mano Izquierda
+    # Mano Izquierda
     mano_izq = Nodo("Mano_Izq")
-    mano_izq.model = vlist_mano  # Usamos la geometría del pie para
+    mano_izq.model = vlist_mano 
     mano_izq.shader = shader
     mano_izq.color = (1, 0.7, 0.7)
     mano_izq.transformacion_local = mat_translate(0, -0.6, 0)
@@ -164,13 +174,13 @@ def crear_personaje(shader):
 
     # Hombro Derecho
     hombro_der = Nodo("Hombro_Der")
-    hombro_der.model = vlist_mano  # No tiene geometría propia
+    hombro_der.model = vlist_mano  
     hombro_der.shader = shader
-    hombro_der.color = (1.0, 0.0, 0.0)  # Color rojo para identificar
+    hombro_der.color = (1.0, 0.0, 0.0)  
     hombro_der.transformacion_local = mat_translate(0.9, 0.3, 0)
     torso_sup.agregar_hijo(hombro_der)
 
-    # 4. Brazo Derecho
+    # Brazo Derecho
     brazo_der = Nodo("Brazo_Der")
     brazo_der.model = vlist_arm
     brazo_der.shader = shader
@@ -178,25 +188,25 @@ def crear_personaje(shader):
     brazo_der.transformacion_local = mat_translate(0.05, -0.5, 0)
     hombro_der.agregar_hijo(brazo_der)
 
-    # 5. Codo Derecho
+    # Codo Derecho
     codo_der = Nodo("Codo_Der")
-    codo_der.model = vlist_mano  # No tiene geometría propia
+    codo_der.model = vlist_mano  
     codo_der.shader = shader
-    codo_der.color = (1.0, 0.0, 0.0)  # Color rojo para identificar
+    codo_der.color = (1.0, 0.0, 0.0)  
     codo_der.transformacion_local = mat_translate(0, -0.6, 0)
     brazo_der.agregar_hijo(codo_der)
 
-    # 3. Antebrazo Izquierdo
+    # Antebrazo Izquierdo
     antebrazo_der = Nodo("Antebrazo_Der")
     antebrazo_der.model = vlist_antebrazo
     antebrazo_der.shader = shader
     antebrazo_der.color = (0.9, 0.7, 0.5)
-    # SOLO posición, la geometría ya está orientada correctamente
+    
     antebrazo_der.transformacion_local = mat_translate(0, -0.5, 0)
     codo_der.agregar_hijo(antebrazo_der)
 
     mano_der = Nodo("Mano_Der")
-    mano_der.model = vlist_mano  # Usamos la geometría del pie para
+    mano_der.model = vlist_mano  
     mano_der.shader = shader
     mano_der.color = (1, 0.7, 0.7)
     mano_der.transformacion_local = mat_translate(0, -0.6, 0)
@@ -210,9 +220,9 @@ def crear_personaje(shader):
 
     # Union cadera - piernas Izquierda
     cad_pierna_izq = Nodo("Cad_Pierna_Izq")
-    cad_pierna_izq.model = vlist_mano  # No tiene geometría propia
+    cad_pierna_izq.model = vlist_mano  
     cad_pierna_izq.shader = shader
-    cad_pierna_izq.color = (1.0, 0.0, 0.0)  # Color rojo para identificar
+    cad_pierna_izq.color = (1.0, 0.0, 0.0)  
     cad_pierna_izq.transformacion_local = mat_translate(-0.4, -0.3, 0)
     cadera.agregar_hijo(cad_pierna_izq)
 
@@ -226,13 +236,13 @@ def crear_personaje(shader):
 
     # Rodilla Izquierda
     rodilla_izq = Nodo("Rodilla_Izq")
-    rodilla_izq.model = vlist_mano  # No tiene geometría propia
+    rodilla_izq.model = vlist_mano  
     rodilla_izq.shader = shader
-    rodilla_izq.color = (1.0, 0.0, 0.0)  # Color rojo para identificar
+    rodilla_izq.color = (1.0, 0.0, 0.0)  
     rodilla_izq.transformacion_local = mat_translate(0, -0.6, 0)
     pierna_izq.agregar_hijo(rodilla_izq)
 
-    # 6. Pantorrilla Izquierda
+    # Pantorrilla Izquierda
     pantorrilla_izq= Nodo("Pantorrilla_Izq")
     pantorrilla_izq.model = vlist_pantorrilla 
     pantorrilla_izq.shader = shader
@@ -242,9 +252,9 @@ def crear_personaje(shader):
 
     #Conexión pie izquierdo
     conct_pie_izq = Nodo("Conct_Pie_Izq")
-    conct_pie_izq.model = vlist_mano  # No tiene geometría propia
+    conct_pie_izq.model = vlist_mano  
     conct_pie_izq.shader = shader
-    conct_pie_izq.color = (1.0, 0.0, 0.0)  # Color rojo para identificar
+    conct_pie_izq.color = (1.0, 0.0, 0.0)  
     conct_pie_izq.transformacion_local = mat_translate(0, -0.4, 0)
     pantorrilla_izq.agregar_hijo(conct_pie_izq)
 
@@ -266,13 +276,13 @@ def crear_personaje(shader):
 
     # Union cadera - piernas Derecha
     cad_pierna_der = Nodo("Cad_Pierna_Der")
-    cad_pierna_der.model = vlist_mano  # No tiene geometría propia
+    cad_pierna_der.model = vlist_mano  
     cad_pierna_der.shader = shader
-    cad_pierna_der.color = (1.0, 0.0, 0.0)  # Color rojo para identificar
+    cad_pierna_der.color = (1.0, 0.0, 0.0)  
     cad_pierna_der.transformacion_local = mat_translate(0.4, -0.3, 0)
     cadera.agregar_hijo(cad_pierna_der)
 
-    # 8. Pierna Derecha
+    # Pierna Derecha
     pierna_der = Nodo("Pierna_Der")
     pierna_der.model = vlist_leg
     pierna_der.shader = shader
@@ -282,13 +292,13 @@ def crear_personaje(shader):
 
     # Rodilla Derecha
     rodilla_der = Nodo("Rodilla_Der")
-    rodilla_der.model = vlist_mano  # No tiene geometría propia
+    rodilla_der.model = vlist_mano  
     rodilla_der.shader = shader
-    rodilla_der.color = (1.0, 0.0, 0.0)  # Color rojo para identificar
+    rodilla_der.color = (1.0, 0.0, 0.0)  
     rodilla_der.transformacion_local = mat_translate(0, -0.6, 0)
     pierna_der.agregar_hijo(rodilla_der)
 
-    # 9. Pantorrilla Derecha
+    # Pantorrilla Derecha
     pantorrilla_der= Nodo("Pantorrilla_Der")
     pantorrilla_der.model = vlist_pantorrilla
     pantorrilla_der.shader = shader
@@ -297,15 +307,15 @@ def crear_personaje(shader):
     rodilla_der.agregar_hijo(pantorrilla_der)
 
 
-    #Conexión pie derecho
+    # Conexión pie derecho
     conct_pie_der = Nodo("Conct_Pie_Der")
-    conct_pie_der.model = vlist_mano  # No tiene geometría propia
+    conct_pie_der.model = vlist_mano  
     conct_pie_der.shader = shader
-    conct_pie_der.color = (1.0, 0.0, 0.0)  # Color rojo para identificar
+    conct_pie_der.color = (1.0, 0.0, 0.0)  
     conct_pie_der.transformacion_local = mat_translate(0, -0.4, 0)
     pantorrilla_der.agregar_hijo(conct_pie_der)
 
-    # 10. Pie Derecho
+    # Pie Derecho
     pie_der = Nodo("Pie_Der")
     pie_der.model = vlist_foot
     pie_der.shader = shader
@@ -316,7 +326,8 @@ def crear_personaje(shader):
     
     
     torso_central.set_transformacion(mat_identity())
-    # At the end of crear_personaje function:
+
+
     personaje_dict = {
         "torso_sup": torso_sup,
         "Cabeza": cabeza,

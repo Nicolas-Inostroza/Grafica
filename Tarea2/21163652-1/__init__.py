@@ -7,8 +7,12 @@ from .trasformaciones import mat_identity, mat_translate, mat_rotate_y, mat_rota
 from .nodo import Nodo
 from .camara import perspective, look_at
 from .personaje import crear_personaje
-from .poses import apply_pose, Poses
+from .poses import aplicar_pose, Poses
 
+
+#============================================#
+#=================CAMARA=====================#
+#============================================#
 
 Camara_por_pose={"neutral":{
     "Position": [0,0,6],
@@ -25,7 +29,7 @@ Camara_por_pose={"neutral":{
     "yaw": 136,
     "pitch": -6},
 
-    "joseph_pose":{
+    "jonathan_pose":{
     "Position": [0,-2.2,5],
     "yaw": -84,
     "pitch": 20},
@@ -42,7 +46,10 @@ def aplicar_camara(camara_dic,pose):
 window = pyglet.window.Window(800, 600, "Personaje Articulado", resizable=True)
 gl.glClearColor(0.5, 0.2, 0.5, 1)
 
-# --- Shader ---
+
+#============================================#
+#=================SHADER=====================#
+#============================================#
 vertex_source = """
 #version 330 core
 in vec3 position;
@@ -72,14 +79,19 @@ shader = pyglet.graphics.shader.ShaderProgram(
 
 projection = perspective(math.radians(65), window.width / window.height, 0.1, 100.0)
 
+
+
 # --- Controles ---
 camera_pos = [0, 0, 6]
 yaw, pitch = -90, 0
 speed = 0.1
 sensitivity = 2.0
 
-#Piso
-#torso_superior: cubo
+
+#============================================#
+#==================PISO======================#
+#============================================#
+
 verts_piso, inds_piso = create_cube(size=12, scale_x=1, scale_y=0.001, scale_z=1)
 vlist_piso = shader.vertex_list_indexed(len(verts_piso)//3, gl.GL_TRIANGLES, inds_piso,
                                         position=(('f', 3), verts_piso))
@@ -98,7 +110,7 @@ piso_dic={"neutral":{
     "polnareff_pose":{
     "Posicion": [0,-1.3,0],},
 
-    "joseph_pose":{
+    "jonathan_pose":{
     "Posicion": [0,-3.1,0],},
     }
 
@@ -107,36 +119,49 @@ def cambiar_piso(pose):
         posicion =piso_dic[pose]
         x,y,z = posicion["Posicion"]
         piso.transformacion=mat_translate(x,y,z)
+#=================================================================================#
+#=================================================================================#
 
 
+
+
+#=================================================================================#
+#=================================================================================#
+# Valores para iniciales.
 pos_torso = [0.0, 0.0, 0.0]  # Posición del torso
 personaje_dict, cuerpo, torso = crear_personaje(shader)
 
 # Lista de todas las poses disponibles
 pose_list = list(Poses.keys())
-current_pose_index = 0
-current_pose = pose_list[current_pose_index]
-apply_pose(personaje_dict, current_pose)  # Aplicar pose inicial
+pose_actual_index = 0
+pose_actual = pose_list[pose_actual_index]
+aplicar_pose(personaje_dict, pose_actual)  # Aplicar pose inicial
 
-# Variable para evitar múltiples cambios con una sola pulsación
+# Variable para evitar que la pose cambie si se mantiene el espacio
 space_pressed = False
+
+#==================================================================================#
+
+
 
 
 def tarea():
-    global current_pose, current_pose_index, space_pressed  # Agregar variables globales
+    global pose_actual, pose_actual_index, space_pressed  # Agregar variables globales
 
     keys = pyglet.window.key.KeyStateHandler()
     window.push_handlers(keys)
     
-        # --- Label to show camera info ---
+
     info_label = pyglet.text.Label(
-        "",                             # Empty text, will update each frame
+        "",                             # Texto que se actualizara cada frame
         font_name="Arial",
         font_size=14,
-        x=10, y=window.height - 20,     # Top-left corner
+        x=10, y=window.height - 20,     # Posicion del texto
         anchor_x="left", anchor_y="top",
-        color=(255, 255, 255, 255)
+        color=(255, 255, 255, 255) 
     )
+
+    # Segun los valores de la camara que van cambiando actualizamos la vista
     def get_view():
         front = [
             math.cos(math.radians(yaw)) * math.cos(math.radians(pitch)),
@@ -157,15 +182,18 @@ def tarea():
         # Dibujar todo el árbol
         torso.draw(None)
         piso.draw(None)
-        # --- Draw camera info overlay ---
-        gl.glDisable(gl.GL_DEPTH_TEST)  # So text draws on top
+        
+
+
+        gl.glDisable(gl.GL_DEPTH_TEST)
+        # Para que se actualizen los valores de la camara en pantalla
         info_label.text = f"Pos: ({camera_pos[0]:.2f}, {camera_pos[1]:.2f}, {camera_pos[2]:.2f})  Yaw: {yaw:.1f}°  Pitch: {pitch:.1f}°"
         info_label.draw()
 
 
     def update(dt):
         global camera_pos, yaw, pitch
-        global current_pose, current_pose_index, space_pressed
+        global pose_actual, pose_actual_index, space_pressed
         
         forward = [math.cos(math.radians(yaw)), 0, math.sin(math.radians(yaw))]
         right = [-forward[2], 0, forward[0]]
@@ -198,12 +226,12 @@ def tarea():
             if not space_pressed:  # Solo cambiar si no estaba presionado antes
                 space_pressed = True
                 # Avanzar al siguiente índice
-                current_pose_index = (current_pose_index + 1) % len(pose_list)
-                current_pose = pose_list[current_pose_index]
-                apply_pose(personaje_dict, current_pose)
-                aplicar_camara(Camara_por_pose, current_pose)
-                cambiar_piso(current_pose)
-                print(f"Pose Actual: [{current_pose_index + 1}/{len(pose_list)}]: {current_pose}")
+                pose_actual_index = (pose_actual_index + 1) % len(pose_list)
+                pose_actual = pose_list[pose_actual_index]
+                aplicar_pose(personaje_dict, pose_actual)
+                aplicar_camara(Camara_por_pose, pose_actual)
+                cambiar_piso(pose_actual)
+                print(f"Pose Actual: [{pose_actual_index + 1}/{len(pose_list)}]: {pose_actual}")
         else:
             space_pressed = False  # Resetear cuando se suelta la tecla
     

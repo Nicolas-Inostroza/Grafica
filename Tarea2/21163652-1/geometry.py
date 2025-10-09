@@ -89,43 +89,32 @@ def create_cylinder(radius=0.2, height=2.0, slices=32, axis='z'):
 
 
 def create_cube(size=1.0, scale_x=1.0, scale_y=1.0, scale_z=1.0):
-    """
-    Crea un cubo o rectángulo (cuboide) con diferentes escalas en cada eje.
-    
-    Parámetros:
-        size: tamaño base del cubo (por defecto 1.0)
-        scale_x, scale_y, scale_z: factores de escala para cada eje.
-                                   Si todos son 1.0, se obtiene un cubo perfecto.
-    
-    Ejemplo:
-        create_cube(size=1.0, scale_x=2.0, scale_y=1.0, scale_z=0.5)
-    """
     sx = (size * scale_x) / 2.0
     sy = (size * scale_y) / 2.0
     sz = (size * scale_z) / 2.0
 
     vertices = [
-        # Front face
+        # Cara frontal 
         -sx, -sy,  sz,   sx, -sy,  sz,   sx,  sy,  sz,  -sx,  sy,  sz,
-        # Back face
+        # Cara trasera
         -sx, -sy, -sz,  -sx,  sy, -sz,   sx,  sy, -sz,   sx, -sy, -sz,
-        # Top face
+        # Cara superior
         -sx,  sy, -sz,  -sx,  sy,  sz,   sx,  sy,  sz,   sx,  sy, -sz,
-        # Bottom face
+        # Cara inferior
         -sx, -sy, -sz,   sx, -sy, -sz,   sx, -sy,  sz,  -sx, -sy,  sz,
-        # Right face
+        # Cara derecha
          sx, -sy, -sz,   sx,  sy, -sz,   sx,  sy,  sz,   sx, -sy,  sz,
-        # Left face
+        # Cara izquierda
         -sx, -sy, -sz,  -sx, -sy,  sz,  -sx,  sy,  sz,  -sx,  sy, -sz,
     ]
 
     indices = [
-        0,  1,  2,   0,  2,  3,   # front
-        4,  5,  6,   4,  6,  7,   # back
-        8,  9, 10,   8, 10, 11,   # top
-        12, 13, 14,  12, 14, 15,  # bottom
-        16, 17, 18,  16, 18, 19,  # right
-        20, 21, 22,  20, 22, 23   # left
+        0,  1,  2,   0,  2,  3,   
+        4,  5,  6,   4,  6,  7,   
+        8,  9, 10,   8, 10, 11,   
+        12, 13, 14,  12, 14, 15,  
+        16, 17, 18,  16, 18, 19,  
+        20, 21, 22,  20, 22, 23   
     ]
 
     return vertices, indices
