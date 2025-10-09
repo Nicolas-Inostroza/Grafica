@@ -9,6 +9,36 @@ from .camara import perspective, look_at
 from .personaje import crear_personaje
 from .poses import apply_pose, Poses
 
+
+Camara_por_pose={"neutral":{
+    "Position": [0,0,6],
+    "yaw": -90,
+    "pitch": 0},
+
+    "johnny_joestar":{
+    "Position": [-0.22,-1.40,5.17],
+    "yaw": -81,
+    "pitch": 14},
+
+    "polnareff_pose":{
+    "Position": [2.89,0.10,-3.13],
+    "yaw": 136,
+    "pitch": -6},
+
+    "joseph_pose":{
+    "Position": [0,-2.2,5],
+    "yaw": -84,
+    "pitch": 20},
+    }
+
+def aplicar_camara(camara_dic,pose):
+    global camera_pos, yaw, pitch
+    camara = camara_dic[pose]
+    camera_pos= camara["Position"]
+    yaw = camara["yaw"]
+    pitch = camara["pitch"]
+
+
 window = pyglet.window.Window(800, 600, "Personaje Articulado", resizable=True)
 gl.glClearColor(0.5, 0.2, 0.5, 1)
 
@@ -48,6 +78,37 @@ yaw, pitch = -90, 0
 speed = 0.1
 sensitivity = 2.0
 
+#Piso
+#torso_superior: cubo
+verts_piso, inds_piso = create_cube(size=12, scale_x=1, scale_y=0.001, scale_z=1)
+vlist_piso = shader.vertex_list_indexed(len(verts_piso)//3, gl.GL_TRIANGLES, inds_piso,
+                                        position=(('f', 3), verts_piso))
+piso = Nodo("Piso")
+piso.model = vlist_piso
+piso.shader = shader
+piso.color = (0.1,0.1,0.1)
+piso.transformacion= mat_translate(0, -3.5, 0)
+
+piso_dic={"neutral":{
+    "Posicion": [0,-3.5,0],},
+
+    "johnny_joestar":{
+    "Posicion": [0,-1.7,0],},
+
+    "polnareff_pose":{
+    "Posicion": [0,-1.3,0],},
+
+    "joseph_pose":{
+    "Posicion": [0,-3.1,0],},
+    }
+
+def cambiar_piso(pose):
+    if pose in piso_dic:
+        posicion =piso_dic[pose]
+        x,y,z = posicion["Posicion"]
+        piso.transformacion=mat_translate(x,y,z)
+
+
 pos_torso = [0.0, 0.0, 0.0]  # Posición del torso
 personaje_dict, cuerpo, torso = crear_personaje(shader)
 
@@ -67,7 +128,15 @@ def tarea():
     keys = pyglet.window.key.KeyStateHandler()
     window.push_handlers(keys)
     
-
+        # --- Label to show camera info ---
+    info_label = pyglet.text.Label(
+        "",                             # Empty text, will update each frame
+        font_name="Arial",
+        font_size=14,
+        x=10, y=window.height - 20,     # Top-left corner
+        anchor_x="left", anchor_y="top",
+        color=(255, 255, 255, 255)
+    )
     def get_view():
         front = [
             math.cos(math.radians(yaw)) * math.cos(math.radians(pitch)),
@@ -87,6 +156,11 @@ def tarea():
 
         # Dibujar todo el árbol
         torso.draw(None)
+        piso.draw(None)
+        # --- Draw camera info overlay ---
+        gl.glDisable(gl.GL_DEPTH_TEST)  # So text draws on top
+        info_label.text = f"Pos: ({camera_pos[0]:.2f}, {camera_pos[1]:.2f}, {camera_pos[2]:.2f})  Yaw: {yaw:.1f}°  Pitch: {pitch:.1f}°"
+        info_label.draw()
 
 
     def update(dt):
@@ -127,53 +201,12 @@ def tarea():
                 current_pose_index = (current_pose_index + 1) % len(pose_list)
                 current_pose = pose_list[current_pose_index]
                 apply_pose(personaje_dict, current_pose)
-                print(f"Applied pose [{current_pose_index + 1}/{len(pose_list)}]: {current_pose}")
+                aplicar_camara(Camara_por_pose, current_pose)
+                cambiar_piso(current_pose)
+                print(f"Pose Actual: [{current_pose_index + 1}/{len(pose_list)}]: {current_pose}")
         else:
             space_pressed = False  # Resetear cuando se suelta la tecla
-        
-        # Cambio de poses individuales con números (opcional)
-        if keys[pyglet.window.key._1]:
-            if current_pose != "neutral":
-                current_pose = "neutral"
-                current_pose_index = pose_list.index(current_pose)
-                apply_pose(personaje_dict, current_pose)
-                print(f"Applied pose: {current_pose}")
-        if keys[pyglet.window.key._2]:
-            if current_pose != "johnny_joestar":
-                current_pose = "johnny_joestar"
-                current_pose_index = pose_list.index(current_pose)
-                apply_pose(personaje_dict, current_pose)
-                print(f"Applied pose: {current_pose}")
-        if keys[pyglet.window.key._3]:
-            if current_pose != "jotaro_pose":
-                current_pose = "jotaro_pose"
-                current_pose_index = pose_list.index(current_pose)
-                apply_pose(personaje_dict, current_pose)
-                print(f"Applied pose: {current_pose}")
-        if keys[pyglet.window.key._4]:
-            if current_pose != "joseph_pose":
-                current_pose = "joseph_pose"
-                current_pose_index = pose_list.index(current_pose)
-                apply_pose(personaje_dict, current_pose)
-                print(f"Applied pose: {current_pose}")
-        if keys[pyglet.window.key._5]:
-            if current_pose != "dio_pose":
-                current_pose = "dio_pose"
-                current_pose_index = pose_list.index(current_pose)
-                apply_pose(personaje_dict, current_pose)
-                print(f"Applied pose: {current_pose}")
-        if keys[pyglet.window.key._6]:
-            if current_pose != "giorno_pose":
-                current_pose = "giorno_pose"
-                current_pose_index = pose_list.index(current_pose)
-                apply_pose(personaje_dict, current_pose)
-                print(f"Applied pose: {current_pose}")
-        if keys[pyglet.window.key._7]:
-            if current_pose != "t_pose":
-                current_pose = "t_pose"
-                current_pose_index = pose_list.index(current_pose)
-                apply_pose(personaje_dict, current_pose)
-                print(f"Applied pose: {current_pose}")
+    
 
     pyglet.clock.schedule_interval(update, 1/60.0)
     pyglet.app.run()

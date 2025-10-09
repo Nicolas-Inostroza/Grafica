@@ -2,6 +2,7 @@ import math
 
 
 
+
 # --- Cámara ---
 def perspective(fovy, aspect, near, far):
     f = 1.0 / math.tan(fovy / 2.0)
@@ -33,3 +34,5 @@ def look_at(eye, target, up):
         sum(f[i]*eye[i] for i in range(3)),
         1
     )
+
+
