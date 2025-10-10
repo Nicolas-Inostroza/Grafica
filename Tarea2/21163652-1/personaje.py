@@ -324,7 +324,7 @@ def crear_personaje(shader):
     conct_pie_der.agregar_hijo(pie_der)
 
     
-    
+    # Le damos la transformacion inicial al nodo raíz para que el personaje se configure completamente
     torso_central.set_transformacion(mat_identity())
 
 

@@ -5,7 +5,11 @@ import math
 
 """
 perspective :: float,float,float,float -> list
-Resive una serie de valores a los cuales se les aplica un cambio para generar una perspectiva para la camara.
+4 valores para mopdificar la perspectiva de la camara.
+El fovy permite ajustar el angulo de vista dando un efecto de ojo de pez a la camara.
+Aspect es el tama;o de la pantalla donde aplicar la camara.
+Near permite decidir la distancia minima donde aparecera algo en la camara entre mayor sea mas lejos dehbe estar algo para aparecer en camara.
+Far decide la distancia maxima que puede ver la camara todo lo que este fuera de este rango no aparecera.
 """
 def perspective(fovy, aspect, near, far):
     f = 1.0 / math.tan(fovy / 2.0)

@@ -8,7 +8,8 @@ from .nodo import Nodo
 from .camara import perspective, look_at
 from .personaje import crear_personaje
 from .poses import aplicar_pose, Poses
-
+window = pyglet.window.Window(800, 600, "Personaje Articulado", resizable=True)
+gl.glClearColor(0.5, 0.2, 0.5, 1)
 
 #============================================#
 #=================CAMARA=====================#
@@ -17,34 +18,44 @@ from .poses import aplicar_pose, Poses
 Camara_por_pose={"neutral":{
     "Position": [0,0,6],
     "yaw": -90,
-    "pitch": 0},
+    "pitch": 0,
+    "projection":perspective(math.radians(90), window.width / window.height, 0.1, 100.0)},
 
     "johnny_joestar":{
-    "Position": [-0.22,-1.40,5.17],
-    "yaw": -81,
-    "pitch": 14},
+    "Position": [0,-1.40,5.13],
+    "yaw": -89,
+    "pitch": 24,
+    "projection":perspective(math.radians(55), window.width / window.height, 2, 100.0)},
 
     "polnareff_pose":{
-    "Position": [2.89,0.10,-3.13],
+    "Position": [2.70,0.10,-2.92],
     "yaw": 136,
-    "pitch": -6},
+    "pitch": -6,
+    "projection":perspective(math.radians(90), window.width / window.height, 0.5, 100.0)},
 
     "jonathan_pose":{
-    "Position": [0,-2.2,5],
-    "yaw": -84,
-    "pitch": 20},
+    "Position": [0.14,-2.5,3.71],
+    "yaw": -86,
+    "pitch": 26,
+    "projection":perspective(math.radians(75), window.width / window.height, 1, 100.0)},
     }
 
+
+"""
+aplicar_camara :: Dict, String -> void
+Funcion que se encarga de dado un nombre de pose buscar y cambiar los valores de al camara por los designados en el diccionario de camara para esta pose especifica.
+Modifica la posición, angulo y perspectiva de la camara.
+"""
 def aplicar_camara(camara_dic,pose):
-    global camera_pos, yaw, pitch
+    global camera_pos, yaw, pitch, projection
     camara = camara_dic[pose]
     camera_pos= camara["Position"]
     yaw = camara["yaw"]
     pitch = camara["pitch"]
+    projection = camara["projection"]
 
 
-window = pyglet.window.Window(800, 600, "Personaje Articulado", resizable=True)
-gl.glClearColor(0.5, 0.2, 0.5, 1)
+
 
 
 #============================================#
@@ -77,7 +88,7 @@ shader = pyglet.graphics.shader.ShaderProgram(
     pyglet.graphics.shader.Shader(fragment_source, "fragment"),
 )
 
-projection = perspective(math.radians(65), window.width / window.height, 0.1, 100.0)
+projection = perspective(math.radians(90), window.width / window.height, 1, 100.0)
 
 
 
@@ -114,6 +125,12 @@ piso_dic={"neutral":{
     "Posicion": [0,-3.1,0],},
     }
 
+
+"""
+cambiar_piso :: String -> void
+Para un nombre de pose dado busca en el diccionario de piso los valores de posicion del piso y los aplica.
+De esta manera el para cada pose existira un piso  que ayude con la intencion de la pose.
+"""
 def cambiar_piso(pose):
     if pose in piso_dic:
         posicion =piso_dic[pose]
@@ -187,7 +204,7 @@ def tarea():
 
         gl.glDisable(gl.GL_DEPTH_TEST)
         # Para que se actualizen los valores de la camara en pantalla
-        info_label.text = f"Pos: ({camera_pos[0]:.2f}, {camera_pos[1]:.2f}, {camera_pos[2]:.2f})  Yaw: {yaw:.1f}°  Pitch: {pitch:.1f}°"
+        info_label.text = f"Pos: ({camera_pos[0]:.2f}, {camera_pos[1]:.2f}, {camera_pos[2]:.2f})  Yaw: {yaw:.1f}°  Pitch: {pitch:.1f}° Projection: {projection}"
         info_label.draw()
 
 
